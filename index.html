@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
+<title>Building Management &amp; Accounting System</title>
+<meta name="description" content="Offline-first PWA for building management, accounting, collections and reporting." />
+<meta name="theme-color" content="#1e3a5f" />
+
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icons/icon-192.png" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+
+<!-- Tailwind CSS (JIT, cached offline by service worker after first load) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          brand: { 50:'#eef4fa',100:'#d4e4f2',200:'#a9c9e5',300:'#7eaed8',400:'#5393cb',500:'#2f6fab',600:'#265a89',700:'#1e3a5f',800:'#162b46',900:'#0f1e30' }
+        },
+        fontFamily: { sans: ['Inter','ui-sans-serif','system-ui','sans-serif'] }
+      }
+    }
+  }
+</script>
+
+<!-- Chart.js for financial analytics -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<!-- Dexie.js wrapper over IndexedDB -->
+<script src="https://unpkg.com/dexie@3.2.7/dist/dexie.js"></script>
+<!-- Socket.IO client for real-time multi-device sync (only used if a backend endpoint is configured in Settings > Sync/API) -->
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans antialiased">
+
+<!-- ============================ TOAST CONTAINER ============================ -->
+<div id="toast-container" class="fixed top-4 right-4 z-[100] w-72 max-w-[90vw]"></div>
+
+<!-- ============================ CONFIRM MODAL =============================== -->
+<div id="confirm-modal" class="hidden fixed inset-0 z-[90] bg-black/50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6">
+    <div class="flex items-start gap-3">
+      <div class="shrink-0 w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center font-bold">!</div>
+      <p id="confirm-modal-message" class="text-sm text-slate-700 pt-2">Are you sure?</p>
+    </div>
+    <div class="flex justify-end gap-2 mt-5">
+      <button id="confirm-modal-no" class="px-4 py-2 text-sm rounded-lg border border-slate-300 hover:bg-slate-50" data-i18n="cancel">Cancel</button>
+      <button id="confirm-modal-yes" class="px-4 py-2 text-sm rounded-lg bg-rose-600 text-white hover:bg-rose-700" data-i18n="confirm">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================ GENERIC MODAL =============================== -->
+<div id="app-modal" class="hidden fixed inset-0 z-[85] bg-black/50 flex items-start sm:items-center justify-center p-3 overflow-y-auto">
+  <div id="app-modal-box" class="bg-white rounded-xl shadow-2xl w-full max-w-lg my-6 max-h-[92vh] flex flex-col">
+    <div class="flex items-center justify-between px-5 py-4 border-b border-slate-200">
+      <h3 id="app-modal-title" class="font-semibold text-slate-800">Modal</h3>
+      <button id="app-modal-close" class="text-slate-400 hover:text-slate-700 text-xl leading-none">&times;</button>
+    </div>
+    <div id="app-modal-body" class="px-5 py-4 overflow-y-auto"></div>
+  </div>
+</div>
+
+<!-- =============================== LOGIN SCREEN ============================== -->
+<div id="login-screen" class="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-brand-800 via-brand-700 to-brand-600">
+  <div class="w-full max-w-md">
+    <div class="text-center mb-6 text-white">
+      <div class="mx-auto w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center mb-3">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-9 h-9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6M9 10h.01M9 13h.01M15 10h.01M15 13h.01" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h1 id="login-building-name" class="text-2xl font-bold">Building Management System</h1>
+      <p class="text-white/70 text-sm mt-1" data-i18n="accountingSubtitle">Accounting &amp; Society Management — Offline Ready</p>
+    </div>
+    <form id="login-form" class="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 space-y-4">
+      <div>
+        <label class="block text-xs font-semibold text-slate-500 mb-1" data-i18n="username">USERNAME</label>
+        <input id="login-username" type="text" required autocomplete="username"
+          class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 outline-none" placeholder="e.g. admin" />
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-500 mb-1" data-i18n="password">PASSWORD</label>
+        <input id="login-password" type="password" required autocomplete="current-password"
+          class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 outline-none" placeholder="••••••••" />
+      </div>
+      <p id="login-error" class="hidden text-rose-600 text-sm bg-rose-50 border border-rose-200 rounded-lg px-3 py-2"></p>
+      <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold py-2.5 rounded-lg transition" data-i18n="signIn">Sign In</button>
+      <div class="text-xs text-slate-400 text-center pt-2 leading-relaxed">
+        <span data-i18n="demoAccounts">Demo accounts</span> — Super Admin: <b>admin / admin123</b><br>
+        Manager: <b>manager / manager123</b> &nbsp;|&nbsp; Entry User: <b>entry / entry123</b>
+      </div>
+    </form>
+    <div class="flex justify-center mt-4">
+      <button id="login-lang-toggle" class="text-white/80 text-xs bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-full transition">🇧🇩 বাংলা / 🇬🇧 English</button>
+    </div>
+    <p class="text-center text-white/60 text-xs mt-4" data-i18n="offlineReady">Works fully offline. Data syncs automatically when you're back online.</p>
+  </div>
+</div>
+
+<!-- =============================== APP SHELL ============================== -->
+<div id="app-shell" class="hidden min-h-screen flex flex-col">
+
+  <!-- Topbar -->
+  <header class="no-print bg-white border-b border-slate-200 sticky top-0 z-40 flex items-center justify-between px-3 sm:px-5 h-14 shrink-0">
+    <div class="flex items-center gap-2">
+      <button id="sidebar-toggle" class="lg:hidden p-2 rounded-lg hover:bg-slate-100">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <div class="flex items-center gap-2">
+        <img id="topbar-logo" src="icons/icon-192.png" class="w-7 h-7 rounded-md hidden" />
+        <span id="topbar-building-name" class="font-bold text-brand-700 text-sm sm:text-base truncate max-w-[40vw] sm:max-w-none">Building Management System</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 sm:gap-4">
+      <button id="lang-toggle-btn" class="text-xs font-semibold bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition">🇧🇩 <span class="hidden sm:inline">বাংলা</span></button>
+      <div class="hidden sm:flex items-center gap-1.5 text-xs font-medium text-slate-500">
+        <span id="net-status-dot" class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+        <span id="net-status-text">Online</span>
+      </div>
+      <button id="manual-sync-btn" title="Sync now" class="relative p-2 rounded-lg hover:bg-slate-100">
+        <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        <span id="sync-pending-badge" class="hidden absolute -top-1 -right-1 bg-amber-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">0</span>
+      </button>
+      <div class="relative">
+        <button id="user-menu-btn" class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-100">
+          <div class="w-8 h-8 rounded-full bg-brand-600 text-white flex items-center justify-center text-xs font-bold" id="user-avatar">U</div>
+          <div class="hidden sm:block text-left">
+            <div id="user-menu-name" class="text-xs font-semibold text-slate-700 leading-tight">User</div>
+            <div id="user-menu-role" class="text-[10px] text-slate-400 leading-tight">Role</div>
+          </div>
+        </button>
+        <div id="user-menu-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-slate-200 py-1 z-50">
+          <button data-view="profile" class="nav-item-link w-full text-left px-4 py-2 text-sm hover:bg-slate-50" data-i18n="myProfile">My Profile</button>
+          <button id="logout-btn" class="w-full text-left px-4 py-2 text-sm text-rose-600 hover:bg-rose-50" data-i18n="logout">Logout</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="flex flex-1 min-h-0">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="no-print fixed lg:static inset-y-0 left-0 z-40 w-64 bg-brand-800 text-white transform -translate-x-full lg:translate-x-0 transition-transform duration-200 flex flex-col">
+      <div class="h-14 flex items-center px-5 font-bold text-lg border-b border-white/10 lg:hidden">Menu</div>
+      <nav id="sidebar-nav" class="flex-1 overflow-y-auto py-3 px-2 space-y-0.5 text-sm"></nav>
+      <div class="p-3 text-[10px] text-white/40 border-t border-white/10">v2.0.0 · Offline-First PWA</div>
+    </aside>
+    <div id="sidebar-backdrop" class="hidden fixed inset-0 bg-black/40 z-30 lg:hidden"></div>
+
+    <!-- Main content -->
+    <main class="flex-1 min-w-0 overflow-y-auto">
+      <div id="view-container" class="p-3 sm:p-5 max-w-7xl mx-auto"></div>
+    </main>
+  </div>
+
+  <!-- Mobile bottom nav -->
+  <nav id="mobile-bottom-nav" class="no-print lg:hidden sticky bottom-0 bg-white border-t border-slate-200 flex items-stretch z-30"></nav>
+</div>
+
+<!-- App scripts -->
+<script src="js/i18n.js"></script>
+<script src="js/db.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/sync.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/print.js"></script>
+<script src="js/app.js"></script>
+<script src="js/app-finance.js"></script>
+<script src="js/app-reports.js"></script>
+<script src="js/app-admin.js"></script>
+<script src="js/app-inventory.js"></script>
+</body>
+</html>

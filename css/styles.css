@@ -1,0 +1,134 @@
+/* ============================================================================
+   styles.css — Custom styles + print stylesheets (thermal POS + A4)
+   ========================================================================= */
+
+html, body { height: 100%; }
+#view-container { min-height: calc(100vh - 3.5rem); }
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+.sidebar-open { transform: translateX(0) !important; }
+
+.nav-link {
+  display: flex; align-items: center; gap: 0.6rem;
+  padding: 0.55rem 0.75rem; border-radius: 0.5rem;
+  color: rgba(255,255,255,0.75); font-weight: 500; cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.nav-link:hover { background: rgba(255,255,255,0.08); color: #fff; }
+.nav-link.active { background: #2f6fab; color: #fff; }
+.nav-link svg { width: 1.1rem; height: 1.1rem; flex-shrink: 0; }
+
+.nav-section-label {
+  font-size: 0.65rem; text-transform: uppercase; letter-spacing: .05em;
+  color: rgba(255,255,255,0.35); padding: 0.9rem 0.75rem 0.25rem;
+  font-weight: 700;
+}
+
+.card { background: #fff; border: 1px solid #e2e8f0; border-radius: 0.9rem; }
+.stat-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 1.1rem 1.25rem; }
+
+.badge { display: inline-flex; align-items: center; padding: 0.15rem 0.55rem; border-radius: 999px; font-size: 0.7rem; font-weight: 600; }
+.badge-green { background: #d1fae5; color: #047857; }
+.badge-red { background: #ffe4e6; color: #be123c; }
+.badge-amber { background: #fef3c7; color: #b45309; }
+.badge-slate { background: #f1f5f9; color: #475569; }
+.badge-blue { background: #dbeafe; color: #1d4ed8; }
+
+.btn { display: inline-flex; align-items: center; gap: .4rem; padding: 0.55rem 1rem; border-radius: 0.6rem; font-weight: 600; font-size: 0.85rem; transition: all .15s; cursor: pointer; white-space: nowrap; }
+.btn-primary { background: #2f6fab; color: #fff; } .btn-primary:hover { background: #265a89; }
+.btn-secondary { background: #f1f5f9; color: #334155; } .btn-secondary:hover { background: #e2e8f0; }
+.btn-danger { background: #fee2e2; color: #b91c1c; } .btn-danger:hover { background: #fecaca; }
+.btn-success { background: #d1fae5; color: #047857; } .btn-success:hover { background: #a7f3d0; }
+.btn-sm { padding: 0.35rem 0.7rem; font-size: 0.75rem; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.form-input, .form-select, .form-textarea {
+  width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem;
+  border: 1px solid #cbd5e1; font-size: 0.875rem; outline: none; background: #fff;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color: #2f6fab; box-shadow: 0 0 0 3px rgba(47,111,171,0.12); }
+.form-label { display: block; font-size: 0.72rem; font-weight: 700; color: #64748b; margin-bottom: 0.3rem; text-transform: uppercase; letter-spacing: .02em; }
+
+table.data-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+table.data-table th { text-align: left; padding: 0.6rem 0.75rem; background: #f8fafc; color: #64748b; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; white-space: nowrap; }
+table.data-table td { padding: 0.6rem 0.75rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+table.data-table tbody tr:hover { background: #f8fafc; }
+
+.animate-slide-in { animation: slideIn .25s ease-out; }
+.animate-fade-out { animation: fadeOut .3s ease-in forwards; }
+@keyframes slideIn { from { transform: translateX(30px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes fadeOut { to { opacity: 0; transform: translateX(30px); } }
+
+.tab-btn { padding: 0.5rem 1rem; font-size: 0.83rem; font-weight: 600; color: #64748b; border-bottom: 2px solid transparent; cursor: pointer; }
+.tab-btn.active { color: #2f6fab; border-color: #2f6fab; }
+
+.empty-state { text-align: center; padding: 3rem 1rem; color: #94a3b8; }
+
+@media (min-width: 1024px) { #sidebar { transform: translateX(0); } }
+
+/* ============================================================================
+   PRINT STYLES
+   ========================================================================= */
+.no-print { }
+@media print {
+  .no-print { display: none !important; }
+  body { background: #fff !important; }
+}
+
+/* When printing via the hidden iframe, print-root determines paper sizing */
+.print-root { margin: 0; padding: 0; font-family: 'Courier New', monospace; }
+
+/* ---- Thermal receipts (58mm / 80mm POS printers) ---- */
+.thermal-58, .thermal-80 { background: #fff; }
+.thermal-58 { width: 58mm; }
+.thermal-80 { width: 80mm; }
+@page { margin: 2mm; }
+
+.thermal-receipt { padding: 2mm 3mm; font-size: 11px; line-height: 1.45; color: #000; }
+.thermal-logo { display: block; margin: 0 auto 4px; max-width: 24mm; max-height: 24mm; }
+.thermal-title { text-align: center; font-weight: 700; font-size: 13px; text-transform: uppercase; }
+.thermal-sub { text-align: center; font-size: 10px; }
+.thermal-divider { text-align: center; letter-spacing: -1px; margin: 3px 0; }
+.thermal-row { display: flex; justify-content: space-between; gap: 6px; }
+.thermal-desc { font-size: 10px; word-wrap: break-word; }
+.thermal-amount { text-align: center; font-weight: 700; font-size: 14px; margin: 3px 0; }
+.thermal-footer { text-align: center; font-size: 9px; margin-top: 4px; }
+
+/* ---- A4 vouchers & reports ---- */
+.a4-paper { width: 190mm; font-family: 'Inter', Arial, sans-serif; color: #1e293b; }
+.a4-voucher, .a4-report { padding: 10mm 12mm; }
+.a4-header, .a4-report-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #1e3a5f; padding-bottom: 10px; margin-bottom: 16px; }
+.a4-header-left { display: flex; gap: 10px; align-items: center; }
+.a4-logo { width: 46px; height: 46px; border-radius: 6px; object-fit: cover; }
+.a4-building-name { font-weight: 800; font-size: 17px; color: #1e3a5f; }
+.a4-building-sub { font-size: 11px; color: #64748b; }
+.a4-header-right { text-align: right; }
+.a4-voucher-badge { display: inline-block; padding: 3px 12px; border-radius: 6px; font-weight: 700; font-size: 12px; letter-spacing: .04em; }
+.badge-income { background: #d1fae5; color: #047857; }
+.badge-expense { background: #ffe4e6; color: #be123c; }
+.a4-voucher-no, .a4-voucher-date { font-size: 12px; color: #475569; margin-top: 4px; }
+.a4-table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+.a4-table th { text-align: left; width: 35%; background: #f8fafc; padding: 10px 12px; font-size: 12px; color: #475569; border: 1px solid #e2e8f0; }
+.a4-table td { padding: 10px 12px; font-size: 13px; border: 1px solid #e2e8f0; }
+.a4-amount-cell { font-weight: 800; font-size: 16px; color: #1e3a5f; }
+.a4-signature-row { display: flex; justify-content: space-between; margin-top: 50px; gap: 20px; }
+.a4-sign-box { flex: 1; text-align: center; font-size: 11px; color: #475569; }
+.a4-sign-line { border-top: 1px solid #94a3b8; margin-bottom: 6px; }
+.a4-footer-note { margin-top: 30px; font-size: 10px; color: #94a3b8; text-align: center; }
+
+.a4-report-title { font-size: 18px; font-weight: 800; margin-top: 4px; }
+.a4-report-subtitle { font-size: 12px; color: #64748b; margin-bottom: 14px; }
+.a4-report table.data-table { font-size: 11px; }
+.a4-report table.data-table th { background: #f1f5f9; }
+.a4-report-summary { display: flex; gap: 14px; margin-bottom: 14px; flex-wrap: wrap; }
+.a4-report-summary .sum-box { border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 14px; font-size: 12px; }
+.a4-report-summary .sum-box b { display: block; font-size: 15px; color: #1e3a5f; }
+
+@media print {
+  @page { size: A4; margin: 10mm; }
+  .thermal-58, .thermal-80 { margin: 0 auto; }
+}
