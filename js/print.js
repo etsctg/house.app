@@ -18,7 +18,7 @@ const PrintModule = {
     frame.style.border = '0';
     document.body.appendChild(frame);
 
-    const lang = window.I18N ? I18N.lang : 'en';
+    const lang = (typeof I18N !== 'undefined') ? I18N.lang : 'en';
     const doc = frame.contentWindow.document;
     doc.open();
     doc.write(`<!DOCTYPE html><html lang="${lang}"><head><meta charset="utf-8">

@@ -241,6 +241,7 @@ Views.renderSettings = async function (container) {
     <h1 class="text-xl font-bold text-slate-800 mb-4">${t('buildingSettings')}</h1>
     <div class="border-b border-slate-200 flex gap-1 mb-5 overflow-x-auto" id="settings-tabs">
       <button data-tab="profile" class="tab-btn active">${t('buildingProfile')}</button>
+      <button data-tab="firebase" class="tab-btn">${t('firebaseTab')}</button>
       <button data-tab="sync" class="tab-btn">${t('syncApi')}</button>
       <button data-tab="backup" class="tab-btn">${t('backupRestore')}</button>
       <button data-tab="danger" class="tab-btn">${t('dataManagement')}</button>
@@ -300,6 +301,57 @@ Views.renderSettings = async function (container) {
       await logAudit(Auth.current.id, 'BUILDING_SETTINGS_UPDATED', 'Profile updated');
       await App.refreshSettingsCache();
       Utils.toast(t('saveBuildingProfile') + ' ✓');
+      App.navigateTo('settings');
+    });
+  };
+
+  const renderFirebaseTab = () => {
+    const cfg = FirebaseSync._cfg(s);
+    document.getElementById('settings-body').innerHTML = `
+      <div class="card p-5 max-w-xl">
+        <p class="text-sm text-slate-500 mb-4">${t('firebaseDesc')}</p>
+        ${cfg ? `<div class="mb-4 text-sm bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg px-3 py-2">✓ ${t('firebaseConnected')}: <b>${Utils.escapeHTML(cfg.projectId)}</b>${s.firebaseEmail ? ' · ' + Utils.escapeHTML(s.firebaseEmail) : ''}</div>` : ''}
+        <form id="firebase-form" class="space-y-4">
+          <div><label class="form-label">${t('firebaseConfigLabel')}</label>
+            <textarea id="fb-config" rows="7" class="form-textarea font-mono text-xs" placeholder='const firebaseConfig = {\n  apiKey: "...",\n  authDomain: "...",\n  projectId: "...",\n  storageBucket: "...",\n  messagingSenderId: "...",\n  appId: "..."\n};'>${cfg ? Utils.escapeHTML(JSON.stringify(cfg, null, 2)) : ''}</textarea></div>
+          <div><label class="form-label">${t('firebaseEmail')}</label><input id="fb-email" type="email" required class="form-input" autocomplete="off" value="${Utils.escapeHTML(s.firebaseEmail || '')}" /></div>
+          <div><label class="form-label">${t('firebasePassword')}</label><input id="fb-password" type="password" required class="form-input" autocomplete="new-password" /></div>
+          <button type="submit" id="fb-submit" class="btn btn-primary w-full justify-center">${t('connectFirebase')}</button>
+        </form>
+        ${cfg ? `<button id="fb-disconnect" class="btn btn-danger w-full justify-center mt-3">${t('disconnectFirebase')}</button>` : ''}
+      </div>`;
+
+    document.getElementById('firebase-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('fb-submit');
+      btn.disabled = true;
+      try {
+        const newCfg = FirebaseSync.parseConfig(document.getElementById('fb-config').value);
+        const email = document.getElementById('fb-email').value.trim();
+        await FirebaseSync.signIn(newCfg, email, document.getElementById('fb-password').value);
+        await db.settings.update(1, { firebaseConfig: JSON.stringify(newCfg), firebaseEmail: email });
+        await logAudit(Auth.current.id, 'FIREBASE_CONNECTED', newCfg.projectId);
+        Utils.toast(t('firebaseSignedIn'));
+        await SyncEngine.reconnect();
+        App.navigateTo('settings');
+      } catch (err) {
+        if (err.message === 'PROJECT_CHANGED') {
+          await db.settings.update(1, { firebaseConfig: JSON.stringify(FirebaseSync.parseConfig(document.getElementById('fb-config').value)), firebaseEmail: document.getElementById('fb-email').value.trim() });
+          Utils.toast(t('firebaseReload'), 'info');
+          setTimeout(() => location.reload(), 1200);
+          return;
+        }
+        Utils.toast((err.code ? err.code + ' — ' : '') + err.message, 'error');
+      } finally { btn.disabled = false; }
+    });
+
+    const dc = document.getElementById('fb-disconnect');
+    if (dc) dc.addEventListener('click', async () => {
+      await FirebaseSync.signOut();
+      await db.settings.update(1, { firebaseConfig: '', firebaseEmail: '' });
+      await logAudit(Auth.current.id, 'FIREBASE_DISCONNECTED', '');
+      SyncEngine.needsFirebaseLogin = false;
+      SyncEngine.updateStatusUI();
       App.navigateTo('settings');
     });
   };
@@ -388,6 +440,7 @@ Views.renderSettings = async function (container) {
       await db.flats.clear();
       await db.assets.clear();
       await db.maintenanceLogs.clear();
+      SyncEngine.resetAllCursors();
       const allUsers = await db.users.toArray();
       for (const u of allUsers) { if (u.id !== Auth.current.id) await db.users.delete(u.id); }
       Utils.toast(t('fullDataReset') + ' ✓', 'warning');
@@ -395,7 +448,7 @@ Views.renderSettings = async function (container) {
     });
   };
 
-  const tabs = { profile: renderProfileTab, sync: renderSyncTab, backup: renderBackupTab, danger: renderDangerTab };
+  const tabs = { profile: renderProfileTab, firebase: renderFirebaseTab, sync: renderSyncTab, backup: renderBackupTab, danger: renderDangerTab };
   document.querySelectorAll('#settings-tabs .tab-btn').forEach(btn => btn.addEventListener('click', () => {
     document.querySelectorAll('#settings-tabs .tab-btn').forEach(b => b.classList.toggle('active', b === btn));
     tabs[btn.dataset.tab]();

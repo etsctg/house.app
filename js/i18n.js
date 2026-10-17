@@ -406,6 +406,18 @@ const I18N = {
     online: { en: 'Online', bn: 'অনলাইন' },
     offline: { en: 'Offline', bn: 'অফলাইন' },
     liveSync: { en: 'Live', bn: 'লাইভ' },
+    firebaseLoginNeeded: { en: 'Sign in to Firebase', bn: 'Firebase-এ সাইন ইন করুন' },
+    firebasePermissionDenied: { en: 'Firebase refused the write. Check the security rules and that the sync account email matches.', bn: 'Firebase লেখার অনুমতি দেয়নি। সিকিউরিটি রুলস এবং সিঙ্ক অ্যাকাউন্টের ইমেইল মিলেছে কি না দেখুন।' },
+    firebaseTab: { en: 'Firebase', bn: 'Firebase' },
+    firebaseDesc: { en: 'Real-time sync through your own Firebase project (Firestore). Paste the web-app config from the Firebase console, then the shared sync account (Email/Password user) you created there. The password is used once to sign in and is not stored.', bn: 'আপনার নিজের Firebase প্রজেক্টের (Firestore) মাধ্যমে রিয়েল-টাইম সিঙ্ক। Firebase কনসোল থেকে ওয়েব-অ্যাপের কনফিগ পেস্ট করুন, তারপর সেখানে বানানো শেয়ার্ড সিঙ্ক অ্যাকাউন্ট (Email/Password ইউজার) দিন। পাসওয়ার্ড শুধু একবার সাইন ইনে ব্যবহার হয়, সংরক্ষণ করা হয় না।' },
+    firebaseConfigLabel: { en: 'Firebase web-app config', bn: 'Firebase ওয়েব-অ্যাপ কনফিগ' },
+    firebaseEmail: { en: 'Sync account email', bn: 'সিঙ্ক অ্যাকাউন্টের ইমেইল' },
+    firebasePassword: { en: 'Sync account password', bn: 'সিঙ্ক অ্যাকাউন্টের পাসওয়ার্ড' },
+    connectFirebase: { en: 'Connect & start syncing', bn: 'সংযুক্ত করুন ও সিঙ্ক শুরু করুন' },
+    disconnectFirebase: { en: 'Disconnect', bn: 'বিচ্ছিন্ন করুন' },
+    firebaseConnected: { en: 'Connected to Firebase project', bn: 'সংযুক্ত Firebase প্রজেক্ট' },
+    firebaseSignedIn: { en: 'Signed in. Syncing live.', bn: 'সাইন ইন হয়েছে। লাইভ সিঙ্ক চলছে।' },
+    firebaseReload: { en: 'Project changed — reloading…', bn: 'প্রজেক্ট বদলেছে — রিলোড হচ্ছে…' },
 
     // ---- Print / Voucher labels ----
     voucherNoLabel: { en: 'Voucher No', bn: 'ভাউচার নং' },
@@ -458,7 +470,7 @@ const I18N = {
     this.updateToggleLabel();
     // Re-render whatever is currently on screen so dynamic template strings
     // (nav, tables, forms) pick up the new language too.
-    if (window.App && window.Auth && Auth.isLoggedIn()) {
+    if ((typeof App !== 'undefined') && (typeof Auth !== 'undefined') && Auth.isLoggedIn()) {
       App.buildNav();
       App.navigateTo(App.currentView);
     }

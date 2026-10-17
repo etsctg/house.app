@@ -9,19 +9,19 @@ const Utils = {
 
   money(n) {
     const val = Number(n || 0);
-    const locale = (window.I18N && I18N.lang === 'bn') ? 'bn-BD' : 'en-IN';
+    const locale = ((typeof I18N !== 'undefined') && I18N.lang === 'bn') ? 'bn-BD' : 'en-IN';
     return this._currency + ' ' + val.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   },
 
   dateStr(d) {
     const dt = (d instanceof Date) ? d : new Date(d);
-    const locale = (window.I18N && I18N.lang === 'bn') ? 'bn-BD' : 'en-GB';
+    const locale = ((typeof I18N !== 'undefined') && I18N.lang === 'bn') ? 'bn-BD' : 'en-GB';
     return dt.toLocaleDateString(locale, { day: '2-digit', month: 'short', year: 'numeric' });
   },
 
   dateTimeStr(d) {
     const dt = (d instanceof Date) ? d : new Date(d);
-    const locale = (window.I18N && I18N.lang === 'bn') ? 'bn-BD' : 'en-GB';
+    const locale = ((typeof I18N !== 'undefined') && I18N.lang === 'bn') ? 'bn-BD' : 'en-GB';
     return dt.toLocaleString(locale, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   },
 
@@ -31,7 +31,7 @@ const Utils = {
   },
 
   monthName(m) {
-    if (window.I18N) return t('m' + m);
+    if ((typeof I18N !== 'undefined')) return t('m' + m);
     return ['January','February','March','April','May','June','July','August','September','October','November','December'][m - 1] || '';
   },
 

@@ -160,8 +160,8 @@ async function queueSync(table, recordId, operation, payload) {
     payload: JSON.stringify(payload),
     synced: 0, timestamp: nowISO()
   });
-  if (navigator.onLine && window.SyncEngine) {
-    window.SyncEngine.push();
+  if (navigator.onLine && (typeof SyncEngine !== 'undefined')) {
+    SyncEngine.push();
   }
 }
 

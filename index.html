@@ -32,6 +32,10 @@
 <script src="https://unpkg.com/dexie@3.2.7/dist/dexie.js"></script>
 <!-- Socket.IO client for real-time multi-device sync (only used if a backend endpoint is configured in Settings > Sync/API) -->
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<!-- Firebase (Firestore + Email/Password auth) — only used if Settings > Firebase is configured -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 
 <link rel="stylesheet" href="css/styles.css" />
 </head>
@@ -166,6 +170,7 @@
 <script src="js/db.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/sync.js"></script>
+<script src="js/firebase-sync.js"></script>
 <script src="js/utils.js"></script>
 <script src="js/charts.js"></script>
 <script src="js/print.js"></script>

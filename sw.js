@@ -9,7 +9,7 @@
      (classic SPA offline fallback).
    ========================================================================= */
 
-const CACHE_NAME = 'bms-cache-v4';
+const CACHE_NAME = 'bms-cache-v5';
 const CORE_ASSETS = [
   './',
   './index.html',
@@ -19,6 +19,7 @@ const CORE_ASSETS = [
   './js/db.js',
   './js/auth.js',
   './js/sync.js',
+  './js/firebase-sync.js',
   './js/utils.js',
   './js/charts.js',
   './js/print.js',
@@ -36,6 +37,9 @@ const CDN_ASSETS = [
   'https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js',
   'https://unpkg.com/dexie@3.2.7/dist/dexie.js',
   'https://cdn.socket.io/4.7.5/socket.io.min.js',
+  'https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js',
+  'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js',
+  'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js',
   'https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;600;700&display=swap'
 ];
 
